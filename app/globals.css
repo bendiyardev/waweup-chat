@@ -1,0 +1,172 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #fafaf9;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f5f5f4;
+
+  --color-foreground: #18181b;
+  --color-muted-foreground: #71717a;
+
+  --color-border: #e4e4e7;
+  --color-border-strong: #d4d4d8;
+
+  --color-accent: #18181b;
+  --color-accent-foreground: #ffffff;
+
+  --color-danger: #dc2626;
+  --color-danger-foreground: #ffffff;
+
+  --radius-lg: 14px;
+  --radius-md: 12px;
+  --radius-sm: 10px;
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/*
+ * Dark theme: the `.dark` class on <html> overrides the Tailwind theme
+ * variables, so every utility (bg-surface, text-foreground, …) follows
+ * automatically. A nonce'd inline script applies the class before first
+ * paint — no flash of the wrong theme.
+ */
+:root {
+  color-scheme: light;
+}
+
+:root.dark {
+  color-scheme: dark;
+
+  --color-background: #0c0a09;
+  --color-surface: #1c1917;
+  --color-surface-muted: #292524;
+
+  --color-foreground: #f5f5f4;
+  --color-muted-foreground: #a8a29e;
+
+  --color-border: #292524;
+  --color-border-strong: #44403c;
+
+  --color-accent: #f5f5f4;
+  --color-accent-foreground: #1c1917;
+
+  --color-danger: #ef4444;
+  --color-danger-foreground: #ffffff;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
+
+/* Modern viewport height that tracks the mobile keyboard correctly. */
+.h-dvh-screen {
+  height: 100vh;
+  height: 100dvh;
+}
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* Lightweight message virtualization: off-screen bubbles skip layout/paint. */
+.message-row {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 64px;
+}
+
+@keyframes message-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-message-in {
+  animation: message-in 150ms ease-out;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 150ms ease-out;
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 200ms ease-out;
+}
+
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 200ms ease-out;
+}
+
+@keyframes typing-dot {
+  0%,
+  60%,
+  100% {
+    opacity: 0.25;
+  }
+  30% {
+    opacity: 1;
+  }
+}
+
+.typing-dot {
+  animation: typing-dot 1.2s infinite;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+/* Focus visibility for keyboard users. */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
