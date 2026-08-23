@@ -25,6 +25,8 @@ const en = {
     themeDark: "Dark",
     themeSystem: "System",
     back: "waweup",
+    screenGuardTitle: "Encrypted screenshot",
+    screenGuardHint: "Content is hidden while this window is not focused.",
   },
   home: {
     title: "Create a private chat",
@@ -325,6 +327,8 @@ const tr: Dictionary = {
     themeDark: "Karanlık",
     themeSystem: "Sistem",
     back: "waweup",
+    screenGuardTitle: "Şifrelenmiş ekran görüntüsü",
+    screenGuardHint: "Pencere odakta değilken içerik gizlenir.",
   },
   home: {
     title: "Özel bir sohbet oluştur",
@@ -622,6 +626,8 @@ const ru: Dictionary = {
     themeDark: "Тёмная",
     themeSystem: "Системная",
     back: "waweup",
+    screenGuardTitle: "Зашифрованный снимок экрана",
+    screenGuardHint: "Содержимое скрыто, пока окно не в фокусе.",
   },
   home: {
     title: "Создать приватный чат",

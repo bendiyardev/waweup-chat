@@ -170,3 +170,36 @@ body {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }
+
+/* Screen-capture shield (private room). */
+.wg-no-select {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+.wg-no-select input,
+.wg-no-select textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* Printing / PDF export must never reveal the conversation. */
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+  #wg-print,
+  #wg-print * {
+    visibility: visible !important;
+  }
+  #wg-print {
+    display: flex !important;
+    position: fixed;
+    inset: 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: #18181b;
+  }
+}

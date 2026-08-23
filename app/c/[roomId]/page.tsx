@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { RoomProvider } from "@/components/chat/room-provider";
 import { RoomShell } from "@/components/chat/room-shell";
+import { ScreenGuard } from "@/components/security/screen-guard";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +23,7 @@ export default async function RoomPage({
   const { roomId } = await params;
   return (
     <RoomProvider roomId={roomId}>
+      <ScreenGuard />
       <RoomShell />
     </RoomProvider>
   );
