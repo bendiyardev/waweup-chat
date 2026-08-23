@@ -5,6 +5,7 @@ import {
   jsonOk,
   requireSameOrigin,
 } from "@/lib/server/http";
+import { hasPusher } from "@/lib/server/env";
 import { ipFingerprint } from "@/lib/server/ip";
 import { authorizePresence, roomChannelName } from "@/lib/server/pusher";
 import { rateLimit } from "@/lib/server/ratelimit";
@@ -20,6 +21,8 @@ export async function POST(
 ) {
   try {
     requireSameOrigin(req);
+    // Realtime is disabled when Pusher is not configured; clients poll instead.
+    if (!hasPusher()) return jsonError(404, "not_found");
     const roomId = validateRoomId((await ctx.params).roomId);
     const limited = rateLimit(`pusher:${ipFingerprint(req)}`, 60, 60_000);
     if (!limited.ok) return jsonError(429, "rate_limited");

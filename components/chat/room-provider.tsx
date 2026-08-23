@@ -176,6 +176,9 @@ export function RoomProvider({
   const pusherRef = React.useRef<Pusher | null>(null);
   const channelRef = React.useRef<Channel | null>(null);
   const onlineIdsRef = React.useRef<Set<string>>(new Set());
+  // Polling fallback (used when Pusher realtime is not configured).
+  const pollTimerRef = React.useRef<ReturnType<typeof setInterval> | null>(null);
+  const pollingRef = React.useRef(false);
   const cursorRef = React.useRef<string | null>(null);
   const myNameRef = React.useRef<string | null>(null);
   const meRef = React.useRef<{ memberId: string; role: "owner" | "member" } | null>(null);
@@ -206,6 +209,11 @@ export function RoomProvider({
       pusherRef.current.disconnect();
       pusherRef.current = null;
     }
+    if (pollTimerRef.current) {
+      clearInterval(pollTimerRef.current);
+      pollTimerRef.current = null;
+    }
+    pollingRef.current = false;
   }, []);
 
   const failFatal = React.useCallback(
@@ -236,7 +244,11 @@ export function RoomProvider({
             member.encryptedDisplayName,
             member.displayNameEpoch,
           ),
-          online: onlineIdsRef.current.has(member.memberId),
+          // Presence is a Pusher-only concept. When polling, membership in the
+          // material already means the member is in the room, so show them as
+          // present rather than misleadingly offline.
+          online:
+            pollingRef.current || onlineIdsRef.current.has(member.memberId),
           joinedAt: member.joinedAt,
         });
       }
@@ -373,10 +385,22 @@ export function RoomProvider({
   }, [typingIds]);
 
   const connectRealtime = React.useCallback(() => {
-    if (pusherRef.current) return;
+    if (pusherRef.current || pollTimerRef.current) return;
     const pusher = createRoomPusher(roomId);
     if (!pusher) {
+      // No Pusher configured: fall back to polling for new messages and
+      // room/membership changes. reconcile() covers new messages;
+      // refreshMaterial() covers joins/leaves, lock/unlock, key rotation and
+      // room destruction (surfaced as a 404).
+      pollingRef.current = true;
       setConnection("online");
+      void reconcile();
+      void refreshMaterial();
+      pollTimerRef.current = setInterval(() => {
+        if (!mountedRef.current) return;
+        void reconcile();
+        void refreshMaterial();
+      }, 3000);
       return;
     }
     pusherRef.current = pusher;

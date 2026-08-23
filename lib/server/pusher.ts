@@ -1,5 +1,5 @@
 import Pusher from "pusher";
-import { isTestEnv, serverEnv } from "./env";
+import { hasPusher, isTestEnv, serverEnv } from "./env";
 
 export function roomChannelName(roomId: string): string {
   return `presence-room-${roomId}`;
@@ -22,10 +22,10 @@ function getPusher(): Pusher {
   if (!client) {
     const env = serverEnv();
     client = new Pusher({
-      appId: env.PUSHER_APP_ID,
-      key: env.PUSHER_KEY,
-      secret: env.PUSHER_SECRET,
-      cluster: env.PUSHER_CLUSTER,
+      appId: env.PUSHER_APP_ID!,
+      key: env.PUSHER_KEY!,
+      secret: env.PUSHER_SECRET!,
+      cluster: env.PUSHER_CLUSTER!,
       useTLS: true,
     });
   }
@@ -54,6 +54,8 @@ export async function triggerRoomEvent(
     testEvents.push({ channel, event, data });
     return;
   }
+  // Without Pusher configured, clients poll instead — nothing to trigger.
+  if (!hasPusher()) return;
   try {
     await getPusher().trigger(channel, event, data);
   } catch {
@@ -71,6 +73,9 @@ export function authorizePresence(
 ): { auth: string; channel_data?: string } {
   if (isTestEnv()) {
     return { auth: "test:auth" };
+  }
+  if (!hasPusher()) {
+    throw new Error("pusher_disabled");
   }
   return getPusher().authorizeChannel(socketId, channel, {
     user_id: memberId,
