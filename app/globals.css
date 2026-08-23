@@ -203,3 +203,27 @@ body {
     color: #18181b;
   }
 }
+
+/* Voice recorder equalizer (subtle orange accent). */
+@keyframes wg-eq {
+  0%, 100% { transform: scaleY(0.35); }
+  50% { transform: scaleY(1); }
+}
+.wg-eq {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 16px;
+}
+.wg-eq span {
+  display: block;
+  width: 3px;
+  height: 100%;
+  border-radius: 2px;
+  background: #FF6903;
+  transform-origin: center bottom;
+  animation: wg-eq 0.9s ease-in-out infinite;
+}
+.wg-eq span:nth-child(2) { animation-delay: 0.15s; }
+.wg-eq span:nth-child(3) { animation-delay: 0.3s; }
+.wg-eq span:nth-child(4) { animation-delay: 0.45s; }

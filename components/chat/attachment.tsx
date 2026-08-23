@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Download, FileIcon, Play } from "lucide-react";
+import { AudioLines, Download, FileIcon, Play } from "lucide-react";
 import { INLINE_PREVIEW_MIME } from "@/lib/config";
 import { downloadAndDecryptAttachment } from "@/lib/client/attachments";
 import { cn, formatBytes, formatDuration } from "@/lib/utils";
@@ -137,7 +137,8 @@ export function AttachmentView({
       return (
         <div className="flex min-w-52 flex-col gap-1">
           {kind === "voice" ? (
-            <span className="text-xs opacity-80">
+            <span className="flex items-center gap-1.5 text-xs opacity-80">
+              <AudioLines className="size-3.5 text-[#FF6903]" aria-hidden />
               {d.chat.voiceMessage}
               {attachment.durationSeconds
                 ? ` · ${formatDuration(attachment.durationSeconds)}`

@@ -152,11 +152,13 @@ export function VoiceRecorder({
       >
         <Trash2 aria-hidden />
       </Button>
-      <div className="flex flex-1 items-center gap-2">
-        <span
-          aria-hidden
-          className="size-2.5 animate-pulse rounded-full bg-danger"
-        />
+      <div className="flex flex-1 items-center gap-2.5">
+        <span className="wg-eq" aria-hidden>
+          <span />
+          <span />
+          <span />
+          <span />
+        </span>
         <span
           className="text-sm tabular-nums text-foreground"
           role="timer"
