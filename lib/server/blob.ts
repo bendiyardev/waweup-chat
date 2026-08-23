@@ -42,6 +42,11 @@ export interface BlobStore {
     data: unknown,
     options?: WriteOptions,
   ): Promise<{ etag: string }>;
+  writeBytes(
+    pathname: string,
+    bytes: Uint8Array,
+    options?: WriteOptions,
+  ): Promise<{ etag: string }>;
   readBytes(pathname: string): Promise<{
     bytes: Uint8Array;
     contentType: string;
@@ -71,6 +76,13 @@ class VercelBlobStore implements BlobStore {
     return this.putRaw(pathname, JSON.stringify(data), {
       ...options,
       contentType: options?.contentType ?? "application/json",
+    });
+  }
+
+  async writeBytes(pathname: string, bytes: Uint8Array, options?: WriteOptions) {
+    return this.putRaw(pathname, bytes, {
+      ...options,
+      contentType: options?.contentType ?? "application/octet-stream",
     });
   }
 
@@ -181,6 +193,15 @@ class MemoryBlobStore implements BlobStore {
       new TextEncoder().encode(JSON.stringify(data)),
       options,
       options?.contentType ?? "application/json",
+    );
+  }
+
+  async writeBytes(pathname: string, bytes: Uint8Array, options?: WriteOptions) {
+    return this.write(
+      pathname,
+      bytes,
+      options,
+      options?.contentType ?? "application/octet-stream",
     );
   }
 

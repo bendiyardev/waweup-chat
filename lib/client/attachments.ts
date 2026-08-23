@@ -1,6 +1,5 @@
 "use client";
 
-import { upload } from "@vercel/blob/client";
 import { APP_CONFIG } from "@/lib/config";
 import { generateAttachmentId } from "@/lib/crypto/ids";
 import type { AttachmentMeta } from "@/types/message";
@@ -77,23 +76,20 @@ export async function encryptAndUploadFile(
         plain,
       );
       if (options.signal?.aborted) throw new UploadCancelledError();
-      await upload(
-        `rooms/${roomId}/files/${attachmentId}/${String(index).padStart(5, "0")}.bin`,
-        new Blob([encrypted.slice().buffer as ArrayBuffer], {
-          type: "application/octet-stream",
-        }),
+      // Ciphertext is proxied through our own route (chunks are <= 3 MB) and
+      // written server-side with the blob RW token — reliable and CSP-simple.
+      const res = await fetch(
+        `/api/rooms/${roomId}/attachments/${attachmentId}/${index}`,
         {
-          access: "private",
-          handleUploadUrl: `/api/rooms/${roomId}/upload-token`,
-          clientPayload: JSON.stringify({
-            attachmentId,
-            chunkIndex: index,
-            voice: options.voice ?? false,
-          }),
-          contentType: "application/octet-stream",
-          abortSignal: options.signal,
+          method: "PUT",
+          headers: { "Content-Type": "application/octet-stream" },
+          body: encrypted.slice().buffer as ArrayBuffer,
+          credentials: "same-origin",
+          cache: "no-store",
+          signal: options.signal,
         },
       );
+      if (!res.ok) throw new Error(`Chunk upload failed (${res.status})`);
       completed += 1;
       report("uploading", completed / chunkCount);
     }

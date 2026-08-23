@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Globe, Moon, Sun, SunMoon } from "lucide-react";
+import { ArrowLeft, Globe, Moon, Sun, SunMoon } from "lucide-react";
 import { useI18n } from "@/components/i18n/locale-provider";
 import { useTheme, type ThemeMode } from "@/components/theme/theme-provider";
 import { LOCALE_NAMES, LOCALES, type Locale } from "@/lib/i18n/dictionaries";
@@ -33,6 +33,14 @@ export function PreferenceControls({ className }: { className?: string }) {
 
   return (
     <div className={cn("flex items-center gap-1.5", className)}>
+      <a
+        href="https://waweup.com"
+        aria-label="waweup.com"
+        className="flex h-8 items-center gap-1.5 rounded-[8px] border border-border bg-surface px-2 text-xs text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground"
+      >
+        <ArrowLeft className="size-3.5" aria-hidden />
+        waweup.com
+      </a>
       <label className="relative inline-flex items-center">
         <span className="sr-only">{d.common.language}</span>
         <Globe
