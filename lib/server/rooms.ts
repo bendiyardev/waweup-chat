@@ -5,10 +5,18 @@ import { ApiError } from "./http";
 import {
   expiryPath,
   filesPrefix,
+  lockPath,
   messagesPrefix,
   metaPath,
   roomPrefix,
 } from "./paths";
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/** How long a held lock is considered live before it may be stolen. */
+const LOCK_STALE_MS = 10_000;
 
 export interface LoadedRoom {
   meta: RoomMeta;
@@ -44,37 +52,51 @@ export async function requireLiveRoom(roomId: string): Promise<LoadedRoom> {
 }
 
 /**
- * Compare-and-swap update of room metadata. On an ETag conflict the metadata
- * is re-read and the mutation re-applied, at most `maxRetries` times — never
- * a blind overwrite. The mutation callback may throw ApiError to abort.
+ * Serialized update of room metadata. Vercel Blob's conditional (ifMatch)
+ * writes are unreliable in this environment, but its create-only writes are
+ * atomic, so we serialize updates with a short-lived create-only lock instead
+ * of an ETag compare-and-swap. The mutation callback may throw ApiError to
+ * abort. An orphaned lock (from a crashed request) is stolen after it goes
+ * stale so a room can never wedge permanently.
  */
 export async function updateRoomMeta(
   roomId: string,
   mutate: (meta: RoomMeta) => RoomMeta | Promise<RoomMeta>,
-  maxRetries = 3,
+  maxRetries = 25,
 ): Promise<RoomMeta> {
   const store = getStore();
-  let lastError: unknown = null;
-  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+  const lock = lockPath(roomId);
+
+  let held = false;
+  for (let attempt = 0; attempt <= maxRetries && !held; attempt++) {
+    try {
+      await store.writeJson(lock, { at: Date.now() }, { createOnly: true });
+      held = true;
+    } catch (error) {
+      if (!(error instanceof StoreConflictError)) throw error;
+      // Steal a lock left behind by a crashed request.
+      const current = await store.readJson<{ at: number }>(lock);
+      if (!current || Date.now() - current.data.at > LOCK_STALE_MS) {
+        await store.del([lock]);
+        continue;
+      }
+      await sleep(60 + Math.floor(Math.random() * 90));
+    }
+  }
+  if (!held) throw new ApiError(409, "conflict");
+
+  try {
     const loaded = await store.readJson<RoomMeta>(metaPath(roomId));
     if (!loaded) throw new ApiError(404, "room_not_found");
     if (isRoomExpired(loaded.data)) throw new ApiError(410, "room_expired");
     const next = await mutate(structuredClone(loaded.data));
     next.version = loaded.data.version + 1;
-    try {
-      await store.writeJson(metaPath(roomId), next, {
-        ifMatch: loaded.etag,
-      });
-      return next;
-    } catch (error) {
-      if (error instanceof StoreConflictError) {
-        lastError = error;
-        continue;
-      }
-      throw error;
-    }
+    // Plain overwrite is safe: the lock guarantees we are the only writer.
+    await store.writeJson(metaPath(roomId), next);
+    return next;
+  } finally {
+    await store.del([lock]).catch(() => {});
   }
-  throw lastError ?? new ApiError(409, "conflict");
 }
 
 /**

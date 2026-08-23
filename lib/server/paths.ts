@@ -6,6 +6,11 @@ export function metaPath(roomId: string): string {
   return `rooms/${roomId}/meta.json`;
 }
 
+/** Short-lived mutual-exclusion lock for room metadata updates. */
+export function lockPath(roomId: string): string {
+  return `rooms/${roomId}/meta.lock`;
+}
+
 export function messagesPrefix(roomId: string): string {
   return `rooms/${roomId}/messages/`;
 }
